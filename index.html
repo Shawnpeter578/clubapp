@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HyperLocal — Polished Prototype (Fixed Buttons)</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+:root{
+  --bg:#FCFEFF; --card:#FFFFFF; --primary:#2563EB; --accent:#FB923C;
+  --muted:#6B7280; --success:#10B981; --danger:#EF4444;
+  --radius:16px; --gap:12px; --shadow: 0 10px 30px rgba(15,23,42,0.06);
+  --max-w:1300px;
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0; font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial; background:var(--bg); color:#071229}
+.app{max-width:var(--max-w); margin:0 auto; padding:16px;}
+
+/* Topbar */
+.topbar{height:64px; display:flex; align-items:center; gap:12px; margin-bottom:12px}
+.logo{font-weight:900; font-size:18px; color:var(--primary); display:flex; gap:8px; align-items:center}
+.logo .dot{width:14px;height:14px;border-radius:50%;background:var(--accent); display:inline-block; transform:rotate(20deg)}
+.search{flex:1; display:flex; align-items:center; background:#F3F7FB; padding:10px 14px; border-radius:12px}
+.search input{border:0; outline:0; background:transparent; width:100%; font-size:15px}
+.icon-btn{width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:12px; background:#fff; box-shadow:var(--shadow); border:0; cursor:pointer}
+
+/* Chips */
+.chips{display:flex; gap:8px; overflow:auto; padding:6px 4px; margin-bottom:12px}
+.chips button{flex:0 0 auto; background:#fff; color:var(--muted); border-radius:999px; border:0; padding:8px 12px; font-size:14px; box-shadow: 0 6px 18px rgba(15,23,42,0.04); cursor:pointer}
+
+/* Layout */
+.layout{display:block}
+.feed{display:flex; flex-direction:column; gap:12px; padding-bottom:160px}
+.card{display:grid; grid-template-columns:56px 1fr auto; gap:10px; align-items:center;
+  background:var(--card); padding:14px; border-radius:16px; box-shadow:var(--shadow); position:relative;}
+.avatar{width:56px; height:56px; border-radius:12px; object-fit:cover; background:linear-gradient(135deg,#ffd59a,#ff9aa2); display:flex; align-items:center; justify-content:center; color:#071229; font-weight:800; font-size:18px}
+.content .title{font-size:16px; font-weight:800; margin:0 0 6px 0}
+.content .tagline{font-size:13px; color:var(--muted); margin:0 0 6px 0}
+.meta{font-size:13px; color:var(--muted)}
+.actions{display:flex; flex-direction:column; gap:8px; align-items:flex-end}
+.btn-cta{background:linear-gradient(90deg,var(--primary), #60a5fa); color:#fff; border:0; padding:10px 14px; border-radius:999px; font-weight:800; min-width:92px; height:44px; box-shadow: 0 8px 22px rgba(37,99,235,0.14); cursor:pointer}
+.more{background:transparent; border:0; font-size:20px; color:var(--muted); cursor:pointer}
+
+/* micro-map */
+.micro-map{position:absolute; right:12px; bottom:10px; width:96px; height:64px; border-radius:12px; overflow:hidden; border:1px solid rgba(7,18,41,0.04); box-shadow: 0 6px 18px rgba(15,23,42,0.04); cursor:pointer}
+.micro-map img, .micro-map svg{width:100%; height:100%; display:block}
+
+/* Bottom nav */
+.bottom-nav{position:fixed; left:16px; right:16px; bottom:16px; display:flex; justify-content:space-around; gap:8px; padding:8px; background:transparent; pointer-events:none}
+.fab{pointer-events:auto; width:66px; height:66px; border-radius:999px; background:linear-gradient(90deg,var(--primary),#60a5fa); color:#fff; display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:var(--shadow); border:0; cursor:pointer}
+
+/* Modal / sheet */
+.modal, .sheet{position:fixed; left:16px; right:16px; bottom:16px; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; transform:translateY(110%); transition:transform .36s cubic-bezier(.22,.9,.3,1); max-height:86vh; overflow:auto; z-index:60}
+.modal.show, .sheet.show{transform:translateY(0)}
+.modal .title{font-size:18px; font-weight:900; margin:0 0 8px 0}
+.close-btn{position:absolute; right:18px; top:12px; background:transparent; border:0; font-size:20px; cursor:pointer}
+
+/* Centered auth modal (updated) */
+#authModal.centered{ left:50%; top:50%; bottom:auto; transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto; position:fixed; z-index:70; max-width:640px; }
+
+/* Map container inside modal */
+.map-small{width:100%; height:220px; border-radius:12px; margin:8px 0;}
+
+/* Auth modal default hidden style */
+#authModal{ left:50%; top:50%; bottom:auto; transform:translate(-50%,-50%) scale(0.8); opacity:0; pointer-events:none; position:fixed; z-index:70; max-width:640px; transition:transform .3s cubic-bezier(.22,.9,.3,1), opacity .3s; }
+
+/* Overlay */
+#modalOverlay{ position:fixed; inset:0; background:rgba(7,18,41,0.45); z-index:60; opacity:0; transition:opacity .2s; pointer-events:none; }
+
+/* Account & About modals */
+#accountModal, #aboutModal{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.95); opacity:0; pointer-events:none; z-index:75; max-width:760px; width:92%; padding:18px; border-radius:14px; box-shadow:0 20px 60px rgba(15,23,42,0.12); background:var(--card); transition:opacity .25s, transform .25s; }
+
+/* Visible state */
+.modal.visible, .sheet.visible, #accountModal.visible, #aboutModal.visible{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
+
+/* Toast */
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:98px; background:rgba(7,18,41,0.92); color:#fff; padding:10px 14px; border-radius:12px; z-index:80; opacity:0; transition:opacity .3s}
+.toast.show{opacity:1}
+
+/* Profile drawer responsive */
+@media(min-width:980px){
+  .layout{display:grid; grid-template-columns:420px 1fr; gap:20px; align-items:start}
+  .feed{padding:0}
+  .micro-map{display:none}
+  .bottom-nav{display:none}
+  .topbar{padding:8px 0}
+  .app{padding:20px}
+  #rightPanel{display:block}
+}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+  <div class="topbar">
+    <div class="logo"><span class="dot"></span>HyperLocal</div>
+    <div class="search" role="search" aria-label="search">
+      <input id="searchInput" placeholder="Find hangouts, clubs or people — try 'music' or 'run'..." />
+    </div>
+    <button id="menuBtn" class="icon-btn" aria-label="menu">≡</button>
+    <button id="loginBtn" class="icon-btn" aria-label="login">🔐</button>
+    <button id="profileBtn" class="icon-btn" aria-label="profile">🙂</button>
+  </div>
+
+  <div class="chips" id="chips" aria-hidden="false">
+    <button data-filter="now">Now</button>
+    <button data-filter="nearby">Nearby</button>
+    <button data-filter="today">Today</button>
+    <button data-filter="music">Music</button>
+    <button data-filter="sports">Sports</button>
+    <button data-filter="tech">Tech</button>
+  </div>
+
+  <div class="layout" id="layout">
+    <main id="mainFeed" class="feed" aria-live="polite" aria-label="Event feed">
+      <!-- Event cards injected here -->
+    </main>
+
+    <aside id="rightPanel" aria-label="Details panel" style="display:none">
+      <div style="background:var(--card); padding:12px; border-radius:12px; box-shadow:var(--shadow); margin-bottom:12px">
+        <h3 style="margin:0 0 8px 0">Details</h3>
+        <div id="rightDetail">Select an event to see details here.</div>
+      </div>
+      <div style="background:var(--card); padding:12px; border-radius:12px; box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 8px 0">Map</h3>
+        <div id="rightMap" style="height:420px; border-radius:12px; overflow:hidden"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bottom-nav" aria-hidden="false">
+    <button class="icon-btn" title="Home" id="homeBtn">🏠</button>
+    <button class="icon-btn" title="Search" id="searchBtn">🔍</button>
+    <button id="fab" class="fab" aria-label="create">＋</button>
+    <button class="icon-btn" title="Inbox" id="inboxBtn">💬</button>
+    <button class="icon-btn" title="Profile" id="profileBtnBottom">👤</button>
+  </div>
+</div>
+
+<!-- Overlay for modals -->
+<div id="modalOverlay"></div>
+
+<!-- Auth modal (login/register) -->
+<div id="authModal" class="modal" role="dialog" aria-hidden="true">
+  <button class="close-btn" id="closeAuth" aria-label="close">✕</button>
+  <div class="auth-modal" id="authContent">
+    <h3 id="authTitle">Log in</h3>
+    <div id="loginForm">
+      <div class="auth-row"><input id="loginEmail" class="input" placeholder="Email" type="email" /></div>
+      <div class="auth-row"><input id="loginPass" class="input" placeholder="Password" type="password" /></div>
+      <div style="display:flex; gap:8px; justify-content:space-between">
+        <button id="showRegister" class="btn-cta" style="flex:1">Create account</button>
+        <button id="doLogin" class="btn-cta" style="flex:1">Log in</button>
+      </div>
+    </div>
+
+    <div id="registerForm" style="display:none; margin-top:12px">
+      <div class="auth-row"><input id="regName" class="input" placeholder="Full name" /></div>
+      <div class="auth-row"><input id="regEmail" class="input" placeholder="Email" type="email" /></div>
+      <div class="auth-row"><input id="regPass" class="input" placeholder="Password (min 6 chars)" type="password" /></div>
+      <div style="display:flex; gap:8px; justify-content:space-between; margin-top:8px">
+        <button id="showLogin" class="btn-cta" style="flex:1">Back</button>
+        <button id="doRegister" class="btn-cta" style="flex:1">Sign up</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event modal (mobile) -->
+<div id="eventModal" class="modal" role="dialog" aria-hidden="true">
+  <button class="close-btn" id="closeModal" aria-label="close">✕</button>
+  <div id="eventContent"></div>
+</div>
+
+<!-- Create sheet -->
+<div id="createSheet" class="sheet" role="dialog" aria-hidden="true" style="left:auto; right:16px; width:360px; transform:translateY(110%);">
+  <button class="close-btn" id="closeCreate" aria-label="close">✕</button>
+  <h3 style="margin-top:0">Quick create</h3>
+  <div id="createStep1" class="create-step">
+    <div class="form-row">
+      <label>What?</label>
+      <input id="evTitle" class="input" placeholder="e.g., Park jam session" />
+    </div>
+    <div class="row">
+      <input id="evTime" class="input" type="datetime-local" />
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-top:8px">
+      <button id="toStep2" class="btn-cta">Next</button>
+    </div>
+  </div>
+  <div id="createStep2" class="create-step" style="display:none">
+    <div class="form-row">
+      <label>Where? (optional)</label>
+      <input id="evPlace" class="input" placeholder="Park north entrance" />
+    </div>
+    <div class="form-row">
+      <label>Visibility</label>
+      <select id="evVis" class="select">
+        <option value="public">Open to all</option>
+        <option value="invite">Invite only</option>
+      </select>
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:8px">
+      <button id="backTo1" class="btn-cta" style="flex:1">Back</button>
+      <button id="publishBtn" class="btn-cta" style="flex:1">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account modal -->
+<div id="accountModal" role="dialog" aria-hidden="true">
+  <button class="close-btn" id="closeAccount">✕</button>
+  <h3>Account</h3>
+  <div id="accountContent" style="margin-top:12px; color:var(--muted)"></div>
+</div>
+
+<!-- About modal -->
+<div id="aboutModal" role="dialog" aria-hidden="true">
+  <button class="close-btn" id="closeAbout">✕</button>
+  <h3>About HyperLocal</h3>
+  <p style="color:var(--muted)">This is a prototype. The map, auth and events are mock implementations for demo purposes.</p>
+</div>
+
+<!-- Profile drawer -->
+<div id="profileDrawer" class="sheet" role="dialog" aria-hidden="true" style="left:auto; right:16px; bottom:16px; width:320px; transform:translateY(110%);">
+  <button class="close-btn" id="closeProfile" aria-label="close">✕</button>
+  <div id="profileContent" style="padding:8px"></div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// DOM ready
+window.addEventListener('DOMContentLoaded', () => {
+  let mockEvents = [
+    {id:'e1', title:'Sunrise Run', tagline:'8km easy pace — all welcome', time:'2025-11-20T06:00:00Z', distance_m:850, category:'Fitness', rsvp:6, host:{name:'Sam',avatar:''}, lat:12.935, lng:77.624},
+    {id:'e2', title:'Acoustic Jam', tagline:'Bring a guitar and a smile', time:'2025-11-20T19:00:00Z', distance_m:1200, category:'Music', rsvp:3, host:{name:'Maya',avatar:''}, lat:12.934, lng:77.629},
+    {id:'e3', title:'Weekend Python', tagline:'Casual coding — beginners welcome', time:'2025-11-21T16:00:00Z', distance_m:2200, category:'Tech', rsvp:10, host:{name:'Rohit',avatar:''}, lat:12.94, lng:77.62},
+    {id:'e4', title:'Park Soccer', tagline:'Pickup match — show up and play', time:'2025-11-19T17:30:00Z', distance_m:600, category:'Sports', rsvp:12, host:{name:'Asha',avatar:''}, lat:12.931, lng:77.63}
+  ];
+
+  const feedEl = document.getElementById('mainFeed');
+  const toast = document.getElementById('toast');
+  const authModal = document.getElementById('authModal');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const accountModal = document.getElementById('accountModal');
+  const aboutModal = document.getElementById('aboutModal');
+  const profileDrawerEl = document.getElementById('profileDrawer');
+  const rightPanel = document.getElementById('rightPanel');
+  let mapRight = null, detailMap = null, rightMarkers = [];
+
+  function humanTime(iso){ const d=new Date(iso); const opts={hour:'numeric',minute:'2-digit',day:'numeric',month:'short'}; return d.toLocaleString(undefined,opts); }
+  function metersToString(m){ if(m<1000) return m+' m'; return (m/1000).toFixed(1)+' km'; }
+  function createEl(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+
+  function smallMapSVG(ev){ const cx = 20 + (ev.distance_m % 60); const cy = 20 + ((Math.floor(ev.distance_m/50)) % 30); return `<svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="100" height="70" rx="8" fill="#F0FAFF"/><path d="M8 50 Q30 30 52 50 T96 50" stroke="#d9f0ff" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="6" fill="${getCategoryColor(ev.category)}"/></svg>`; }
+  function getCategoryColor(cat){ switch((cat||'').toLowerCase()){ case 'music': return '#8B5CF6'; case 'fitness': return '#10B981'; case 'sports': return '#FB7185'; case 'tech': return '#3B82F6'; default: return '#3B82F6'; } }
+
+  function renderFeed(list){ feedEl.innerHTML=''; list.forEach(ev=>{ const card=createEl('article','card'); card.dataset.id=ev.id; card.tabIndex=0; card.innerHTML=`<div class="avatar">${ev.host.name[0]||'?'}</div><div class="content"><h3 class="title">${ev.title}</h3><p class="tagline">${ev.tagline}</p><div class="meta">${humanTime(ev.time)} · ${metersToString(ev.distance_m)}</div></div><div class="actions"><button class="btn-cta">Join</button><button class="more" aria-label="more">›</button></div><div class="micro-map" title="Show location preview" role="button" tabindex="0" aria-label="map preview"></div>`; feedEl.appendChild(card); const joinBtn=card.querySelector('.btn-cta'); joinBtn.addEventListener('click', ()=>joinEvent(ev.id, joinBtn, ev)); card.querySelector('.more').addEventListener('click', ()=>openDetail(ev.id)); card.querySelector('.content').addEventListener('click', ()=>openDetail(ev.id)); card.querySelector('.micro-map').addEventListener('click',(e)=>{e.stopPropagation(); openMiniMap(ev)}); card.querySelector('.micro-map').addEventListener('keypress',(e)=>{ if(e.key==='Enter') openMiniMap(ev)}); card.querySelector('.micro-map').innerHTML=smallMapSVG(ev); }); updateRightPanel(list); }
+
+  function updateRightPanel(list){ const mini=document.getElementById('rightDetail'); if(!mini) return; mini.innerHTML='<div style="color:var(--muted)">Select an event to view details here.</div>'; if(window.innerWidth>=980) rightPanel.style.display='block'; if(window.innerWidth>=980 && !mapRight){ setTimeout(()=>initRightMap(list),0); } else if(mapRight){ refreshRightMarkers(list); } }
+  function initRightMap(list){ try{ mapRight = L.map('rightMap',{zoomControl:true}).setView([12.935,77.624],14); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapRight); list.forEach(ev=>{ const m=L.marker([ev.lat,ev.lng],{title:ev.title}).addTo(mapRight).bindPopup(`<strong>${ev.title}</strong><br>${humanTime(ev.time)}`); m.evId=ev.id; m.on('click',()=>openDetail(ev.id)); rightMarkers.push(m); }); }catch(e){ console.warn('Leaflet init failed',e); } }
+  function refreshRightMarkers(list){ if(!mapRight) return; rightMarkers.forEach(m=>mapRight.removeLayer(m)); rightMarkers=[]; list.forEach(ev=>{ const m=L.marker([ev.lat,ev.lng],{title:ev.title}).addTo(mapRight).bindPopup(`<strong>${ev.title}</strong><br>${humanTime(ev.time)}`); m.on('click',()=>openDetail(ev.id)); rightMarkers.push(m); }); }
+
+  function openMiniMap(ev){ openDetail(ev.id,{openMap:true}); }
+
+  function joinEvent(id, btn, ev){ if(btn.disabled) return; if(!getCurrentUser()){ showToast('Please sign in to join — quick & secure 🔐'); openAuth('login'); return; } btn.disabled=true; btn.innerHTML='Joining...'; ev.rsvp=(ev.rsvp||0)+1; showToast("You're in — "+ev.rsvp+" going 🎉"); setTimeout(()=>{ btn.innerHTML='Going ✓'; btn.style.background='linear-gradient(90deg,var(--success),#34d399)'; btn.disabled=true; renderFeed(mockEvents); },700); }
+
+  function openDetail(id,opts={}){ const ev=mockEvents.find(x=>x.id===id); if(!ev) return; if(window.innerWidth>=980){ const rd=document.getElementById('rightDetail'); rd.innerHTML=`<strong style="font-size:18px">${ev.title}</strong><div style="color:var(--muted); margin-top:6px">${humanTime(ev.time)} · ${metersToString(ev.distance_m)}</div><div style="margin-top:8px; display:flex; gap:8px; align-items:center"><div style="width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#ffd59a,#ff9aa2);display:flex;align-items:center;justify-content:center;color:#071229;font-weight:800">${ev.host.name[0]}</div><div><strong>${ev.host.name}</strong><div style="font-size:13px;color:var(--muted)">Host</div></div></div><p style="color:var(--muted); margin-top:12px">${ev.tagline}</p><div style="display:flex; gap:8px; margin-top:12px"><button id="detailJoinRight" class="btn-cta">Join</button><button id="shareBtn" class="btn-cta">Share</button><button id="aboutBtn" class="btn-ghost">About</button></div>`; document.getElementById('detailJoinRight').addEventListener('click',()=>joinEvent(id,document.getElementById('detailJoinRight'),ev)); document.getElementById('shareBtn').addEventListener('click',()=>showToast('Share (mock) — not implemented.')); document.getElementById('aboutBtn').addEventListener('click',()=>openAbout()); if(mapRight){ mapRight.setView([ev.lat,ev.lng],15); } return; } const eventModal=document.getElementById('eventModal'); const eventContent=document.getElementById('eventContent'); eventContent.innerHTML=`<h2 class="title">${ev.title} <span style="font-size:14px; color:var(--muted); font-weight:600"> · ${ev.category}</span></h2><div class="meta">${humanTime(ev.time)} · ${metersToString(ev.distance_m)}</div><div style="margin:8px 0; display:flex; gap:8px; align-items:center"><div class="small-avatar">${ev.host.name[0]}</div><div><strong>${ev.host.name}</strong><div style="font-size:13px;color:var(--muted)">Host</div></div></div><p style="color:var(--muted); margin-top:8px">${ev.tagline}</p><div id="detailMapContainer" style="margin-top:12px"><div id="detailMap" class="map-small" aria-hidden="true"></div></div><div style="margin-top:12px"><button id="detailJoin" class="btn-cta" style="width:100%">Join</button><div style="display:flex; gap:8px; margin-top:8px"><button id="addCal" class="btn-cta" style="flex:1">Add to calendar</button><button id="shareMobile" class="btn-ghost" style="flex:1">Share</button></div></div>`; document.getElementById('detailJoin').addEventListener('click',()=>joinEvent(id,document.getElementById('detailJoin'),ev)); document.getElementById('addCal').addEventListener('click',()=>showToast('Add to calendar (mock).')); document.getElementById('shareMobile').addEventListener('click',()=>showToast('Share (mock).')); eventModal.classList.add('show'); eventModal.setAttribute('aria-hidden','false'); setTimeout(()=>initDetailMap(ev),420); }
+  function initDetailMap(ev){ try{ if(detailMap){ detailMap.remove(); detailMap=null; } detailMap=L.map('detailMap',{zoomControl:true,attributionControl:false}).setView([ev.lat,ev.lng],15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(detailMap); L.marker([ev.lat,ev.lng]).addTo(detailMap).bindPopup(`<strong>${ev.title}</strong>`).openPopup(); }catch(e){ console.warn('detail map init failed',e); } }
+  document.getElementById('closeModal').addEventListener('click',()=>{ document.getElementById('eventModal').classList.remove('show'); document.getElementById('eventModal').setAttribute('aria-hidden','true'); if(detailMap){ detailMap.remove(); detailMap=null; } });
+
+  // Create sheet handlers are already wired below, ensure element exists (we added it)
+  document.getElementById('fab').addEventListener('click',()=>{ document.getElementById('createSheet').classList.add('visible'); document.getElementById('createSheet').setAttribute('aria-hidden','false'); });
+  document.getElementById('closeCreate').addEventListener('click',()=>{ document.getElementById('createSheet').classList.remove('visible'); document.getElementById('createSheet').setAttribute('aria-hidden','true'); });
+  document.getElementById('toStep2').addEventListener('click',()=>{ const t=document.getElementById('evTitle').value.trim(); const time=document.getElementById('evTime').value; if(!t||!time){ alert('Please add a title and time'); return;} document.getElementById('createStep1').style.display='none'; document.getElementById('createStep2').style.display='block'; });
+  document.getElementById('backTo1').addEventListener('click',()=>{ document.getElementById('createStep1').style.display='block'; document.getElementById('createStep2').style.display='none'; });
+  document.getElementById('publishBtn').addEventListener('click',()=>{ const title=document.getElementById('evTitle').value.trim(); const time=document.getElementById('evTime').value; const place=document.getElementById('evPlace').value||'Nearby'; if(!getCurrentUser()){ showToast('Please sign in to publish events.'); openAuth('login'); return; } const id='e'+(Date.now()%100000); const newEv={id,title,tagline:place,time:new Date(time).toISOString(),distance_m:Math.floor(Math.random()*1500)+200,category:'Community',rsvp:1,host:{name:getCurrentUser().name,avatar:''},lat:12.935+Math.random()*0.01,lng:77.624+Math.random()*0.01}; mockEvents.unshift(newEv); renderFeed(mockEvents); document.getElementById('createSheet').classList.remove('visible'); document.getElementById('createSheet').setAttribute('aria-hidden','true'); showToast('Event published — good luck! 🎉'); });
+
+  // Toast
+  let toastTimer=null;
+  function showToast(msg,t=2200){ toast.textContent=msg; toast.classList.add('show'); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ toast.classList.remove('show'); },t); }
+
+  // Search & chips
+  document.getElementById('searchInput').addEventListener('input',(e)=>{ const q=e.target.value.trim().toLowerCase(); if(!q){ renderFeed(mockEvents); return; } const filtered=mockEvents.filter(ev=>ev.title.toLowerCase().includes(q)||ev.tagline.toLowerCase().includes(q)||ev.category.toLowerCase().includes(q)||ev.host.name.toLowerCase().includes(q)); renderFeed(filtered); });
+  document.querySelectorAll('.chips button').forEach(btn=>{ btn.addEventListener('click',()=>{ const f=btn.dataset.filter; if(f==='nearby'){ renderFeed(mockEvents.slice().sort((a,b)=>a.distance_m-b.distance_m)); } else if(f==='now'){ const now=Date.now(); renderFeed(mockEvents.slice().sort((a,b)=>Math.abs(new Date(a.time)-now)-Math.abs(new Date(b.time)-now))); } else { renderFeed(mockEvents.filter(e=>e.category.toLowerCase()===f)); } }); });
+
+  // Keyboard accessibility
+  feedEl.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const card=document.activeElement.closest('.card'); if(card) openDetail(card.dataset.id); } });
+
+  // Auth mock
+  function getCurrentUser(){ return JSON.parse(localStorage.getItem('hyperlocal_user')||'null'); }
+  const loginBtn=document.getElementById('loginBtn');
+  const showRegister=document.getElementById('showRegister');
+  const showLogin=document.getElementById('showLogin');
+  const doLogin=document.getElementById('doLogin');
+  const doRegister=document.getElementById('doRegister');
+  function openAuth(show='login'){ modalOverlay.style.opacity='1'; modalOverlay.style.pointerEvents='auto'; authModal.classList.add('centered','visible'); authModal.setAttribute('aria-hidden','false'); if(show==='login'){ document.getElementById('authTitle').textContent='Log in'; document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; } else { document.getElementById('authTitle').textContent='Create account'; document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; } }
+  function closeAuthModal(){ modalOverlay.style.opacity='0'; modalOverlay.style.pointerEvents='none'; authModal.classList.remove('centered','visible'); authModal.setAttribute('aria-hidden','true'); }
+  loginBtn.addEventListener('click',()=>openAuth('login')); document.getElementById('closeAuth').addEventListener('click',()=>closeAuthModal()); modalOverlay.addEventListener('click',()=>closeAuthModal()); showRegister.addEventListener('click',()=>openAuth('register')); showLogin.addEventListener('click',()=>openAuth('login'));
+
+  doRegister.addEventListener('click',()=>{ const name=document.getElementById('regName').value.trim(); const email=document.getElementById('regEmail').value.trim(); const pass=document.getElementById('regPass').value; if(!name||!email||!pass||pass.length<6){ alert('Name, email and password (min 6 chars) required'); return; } const user={name,email,token:'tok-'+Date.now()}; localStorage.setItem('hyperlocal_user',JSON.stringify(user)); closeAuthModal(); updateAuthUI(); showToast('Welcome, '+name+' 🎉'); });
+  doLogin.addEventListener('click',()=>{ const email=document.getElementById('loginEmail').value.trim(); const pass=document.getElementById('loginPass').value; if(!email||!pass){ alert('Enter email & password'); return; } const user={name:email.split('@')[0],email,token:'tok-'+Date.now()}; localStorage.setItem('hyperlocal_user',JSON.stringify(user)); closeAuthModal(); updateAuthUI(); showToast('Signed in — '+user.name); });
+
+  function updateAuthUI(){ const u=getCurrentUser(); const p=document.getElementById('profileBtn'); const lp=document.getElementById('loginBtn'); if(u){ p.textContent=u.name[0].toUpperCase(); lp.style.display='none'; } else { p.textContent='🙂'; lp.style.display='inline-flex'; } }
+
+  updateAuthUI();
+
+  // Profile drawer
+  const profileBtn=document.getElementById('profileBtn');
+  const profileBtnBottom=document.getElementById('profileBtnBottom');
+  function openProfile(){ const u=getCurrentUser(); const el=document.getElementById('profileContent'); if(!u){ el.innerHTML='<div style="color:var(--muted)">You are not signed in.</div><div style="margin-top:12px"><button id="openAuthFromProfile" class="btn-cta">Sign in</button></div>'; setTimeout(()=>{ const btn=document.getElementById('openAuthFromProfile'); if(btn) btn.addEventListener('click',()=>openAuth('login')); },50); } else { el.innerHTML=`<div style="display:flex; gap:12px; align-items:center"><div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#ffd59a,#ff9aa2);display:flex;align-items:center;justify-content:center;font-weight:800">${u.name[0].toUpperCase()}</div><div><strong>${u.name}</strong><div style="color:var(--muted)">${u.email}</div></div></div><div style="margin-top:12px"><button id="myEventsBtn" class="btn-cta" style="width:100%; margin-bottom:8px">My Events</button><button id="accountBtn" class="btn-ghost" style="width:100%; margin-bottom:8px">Account</button><button id="aboutBtn2" class="btn-ghost" style="width:100%; margin-bottom:8px">About</button><button id="logoutBtn" class="select" style="width:100%">Log out</button></div>`; setTimeout(()=>{ document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('hyperlocal_user'); updateAuthUI(); closeProfileDrawer(); showToast('Signed out'); }); document.getElementById('myEventsBtn').addEventListener('click',()=>{ filterMyEvents(); closeProfileDrawer(); }); document.getElementById('accountBtn').addEventListener('click',()=>{ openAccount(); closeProfileDrawer(); }); document.getElementById('aboutBtn2').addEventListener('click',()=>{ openAbout(); closeProfileDrawer(); }); },50); } profileDrawerEl.classList.add('visible'); profileDrawerEl.setAttribute('aria-hidden','false'); }
+  function closeProfileDrawer(){ profileDrawerEl.classList.remove('visible'); profileDrawerEl.setAttribute('aria-hidden','true'); }
+  profileBtn.addEventListener('click',()=>openProfile()); profileBtnBottom.addEventListener('click',()=>openProfile()); document.getElementById('closeProfile').addEventListener('click',()=>closeProfileDrawer());
+
+  function filterMyEvents(){ const u=getCurrentUser(); if(!u){ showToast('Sign in to see your events'); openAuth('login'); return; } const mine=mockEvents.filter(e=>e.host && e.host.name===u.name); if(mine.length===0){ showToast('You have no events yet'); return; } renderFeed(mine); }
+
+  // Account & About
+  function openAccount(){ const u=getCurrentUser(); const ac=document.getElementById('accountContent'); if(!u){ ac.innerHTML='<div style="color:var(--muted)">Sign in to see account details.</div>'; } else { ac.innerHTML=`<div><strong>${u.name}</strong><div style="color:var(--muted)">${u.email}</div></div><div style="margin-top:12px"><button id="editProfileBtn" class="btn-cta">Edit profile (mock)</button></div>`; setTimeout(()=>{ document.getElementById('editProfileBtn').addEventListener('click',()=>showToast('Edit profile (mock)')); },50); } accountModal.classList.add('visible'); accountModal.setAttribute('aria-hidden','false'); modalOverlay.style.opacity='1'; modalOverlay.style.pointerEvents='auto'; }
+  document.getElementById('closeAccount').addEventListener('click',()=>{ accountModal.classList.remove('visible'); accountModal.setAttribute('aria-hidden','true'); modalOverlay.style.opacity='0'; modalOverlay.style.pointerEvents='none'; });
+
+  function openAbout(){ aboutModal.classList.add('visible'); aboutModal.setAttribute('aria-hidden','false'); modalOverlay.style.opacity='1'; modalOverlay.style.pointerEvents='auto'; }
+  document.getElementById('closeAbout').addEventListener('click',()=>{ aboutModal.classList.remove('visible'); aboutModal.setAttribute('aria-hidden','true'); modalOverlay.style.opacity='0'; modalOverlay.style.pointerEvents='none'; });
+
+  // Misc buttons
+  document.getElementById('homeBtn').addEventListener('click',()=>renderFeed(mockEvents));
+  document.getElementById('searchBtn').addEventListener('click',()=>document.getElementById('searchInput').focus());
+  document.getElementById('inboxBtn').addEventListener('click',()=>showToast('Inbox (mock) — not implemented.'));
+  document.getElementById('menuBtn').addEventListener('click',()=>{ showToast('Menu (mock) — open Account or About from profile.'); openAuth('login'); });
+
+  // Initial render
+  renderFeed(mockEvents);
+  window.addEventListener('resize',()=>{ if(window.innerWidth<980) rightPanel.style.display='none'; else rightPanel.style.display='block'; });
+  if(window.innerWidth>=980 && mockEvents.length>0) setTimeout(()=>{ openDetail(mockEvents[0].id); },800);
+
+}); // DOM ready
+</script>
+</body>
+</html>
