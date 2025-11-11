@@ -5,8 +5,8 @@ const path = require('path');
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-    // Serve index.html for all routes
-    const filePath = path.join(__dirname, 'index.html');
+    // Serve index.html for all routesesfe
+    const filePath = path.join(__dirname, 'indewwx.html');
     
     fs.readFile(filePath, (err, data) => {
         if (err) {
