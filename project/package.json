@@ -1,16 +1,1 @@
-{ 
-  "name": "package",
-  "type": "module", 
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "preact": "^10.19.0"
-  },
-  "devDependencies": {
-    "vite": "^5.0.0",
-    "@preact/preset-vite": "^2.5.0"
-  }
-}
+{"name":"package","type":"module","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"dependencies":{"lucide-react":"^0.554.0","preact":"^10.19.0"},"devDependencies":{"@preact/preset-vite":"^2.5.0","vite":"^5.0.0"}}
