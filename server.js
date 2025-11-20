@@ -137,11 +137,11 @@ const server = http.createServer((req, res) => {
     }
 
     // Serve static files
-    let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
+    let filePath = path.join(__dirname, 'dist', pathname === '/' ? 'index.html' : pathname);
 
     // Ensure the file path doesn't go outside the public directory
     const normalizedPath = path.normalize(filePath);
-    if (normalizedPath.indexOf(path.resolve(__dirname, 'public')) !== 0) {
+    if (normalizedPath.indexOf(path.resolve(__dirname, 'dist')) !== 0) {
         res.writeHead(403, { 'Content-Type': 'text/html' });
         res.end('<h1>403 - Forbidden</h1>');
         return;
