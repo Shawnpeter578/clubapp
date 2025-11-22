@@ -1,0 +1,11 @@
+.app {
+    min-height: 100vh;
+    background: var(--bg-page);
+    color: var(--text-main);
+}
+
+.main {
+    max-width: 1100px;
+    margin: 0 auto;
+    min-height: calc(100vh - 80px);
+}
