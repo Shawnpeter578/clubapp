@@ -1,5 +1,5 @@
 # clubspot.com
-[GitHub Release](https://img.shields.io/github/v/release/Shawnpeter578/clubapp)
+[(https://img.shields.io/github/v/release/Shawnpeter578/clubapp)]()
 ## Deployment:
 The render webpage is linked to `XPZ4Y's fork` of this repository ;)
 https://workforce-wellness-tracker.onrender.com
