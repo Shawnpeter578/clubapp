@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Calendar, MapPin, Maximize2, Minimize2, Users } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '../UI/Button';
+import { Avatar } from '../UI/Avatar';
 import styles from './EventDetailsModal.module.css';
 
 // Fix Leaflet icon issue
@@ -80,6 +81,14 @@ export const EventDetailsModal = ({ event, isOpen, onClose, onJoin, isJoined }) 
                                 <span className={styles.cat}>{event.cat}</span>
                             </div>
 
+                            <div className={styles.hostRow}>
+                                <Avatar src={event.host.avatar} alt={event.host.name} size="md" />
+                                <div className={styles.hostInfo}>
+                                    <span className={styles.hostName}>{event.host.name}</span>
+                                    <span className={styles.hostBio}>{event.host.bio}</span>
+                                </div>
+                            </div>
+
                             <p className={styles.desc}>{event.desc}</p>
 
                             <div className={styles.meta}>
@@ -88,6 +97,9 @@ export const EventDetailsModal = ({ event, isOpen, onClose, onJoin, isJoined }) 
                                 </span>
                                 <span className={styles.metaItem}>
                                     <MapPin size={14} /> {formatDist(event.dist)}
+                                </span>
+                                <span className={styles.metaItem}>
+                                    <Users size={14} /> {event.joinedCount}/{event.maxCapacity} Joined
                                 </span>
                             </div>
 

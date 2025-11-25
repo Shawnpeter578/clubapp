@@ -1,0 +1,8 @@
+{
+    "appId": "com.clubapp.mobile",
+    "appName": "Club App",
+    "webDir": "dist",
+    "server": {
+        "androidScheme": "https"
+    }
+}

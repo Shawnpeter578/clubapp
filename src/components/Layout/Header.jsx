@@ -3,7 +3,7 @@ import { Search, Bell, ArrowLeft, X } from 'lucide-react';
 import { Avatar } from '../UI/Avatar';
 import styles from './Header.module.css';
 
-export const Header = ({ user, onSignIn, showBack, onBack, showCancel, onCancel }) => {
+export const Header = ({ user, onSignIn, showBack, onBack, showCancel, onCancel, onNotifications, onSearch }) => {
     return (
         <header className={styles.header}>
             <div className={styles.left}>
@@ -30,10 +30,10 @@ export const Header = ({ user, onSignIn, showBack, onBack, showCancel, onCancel 
                     </button>
                 ) : (
                     <>
-                        <button className={styles.iconBtn}>
+                        <button className={styles.iconBtn} onClick={onSearch}>
                             <Search size={20} />
                         </button>
-                        <button className={styles.iconBtn}>
+                        <button className={styles.iconBtn} onClick={onNotifications}>
                             <Bell size={20} />
                         </button>
                         {user ? (

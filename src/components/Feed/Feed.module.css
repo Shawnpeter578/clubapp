@@ -1,7 +1,7 @@
 .feed {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     padding: 20px;
     padding-bottom: 100px;
     max-width: 600px;
@@ -11,61 +11,136 @@
 .eventCard {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    position: relative;
+}
+
+.cardContent {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .header {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
 }
 
-.info {
+.mainInfo {
     flex: 1;
 }
 
-.title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
+.category {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(124, 58, 237, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
-.meta {
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-main);
+    margin: 0 0 8px 0;
+}
+
+.dateBadge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    min-width: 56px;
+    height: 56px;
+    padding: 8px;
+}
+
+.month {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--primary);
+    letter-spacing: 1px;
+}
+
+.day {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border-radius: 16px;
+}
+
+.detailItem {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
-    color: var(--secondary);
-    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.detailIcon {
+    color: var(--text-dim);
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 4px;
+    gap: 16px;
+}
+
+.hostInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hostText {
+    display: flex;
+    flex-direction: column;
+}
+
+.hostedBy {
+    font-size: 10px;
+    color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.metaItem {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.dot {
-    color: var(--glass-border);
-}
-
-.desc {
-    font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin: 0;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
+.hostName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
 }
 
 .joinBtn {
-    flex: 1;
+    min-width: 100px;
+    border-radius: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 .emptyState {

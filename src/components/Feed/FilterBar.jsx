@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Search, Filter } from 'lucide-react';
 import styles from './FilterBar.module.css';
 
-export const FilterBar = ({
+export const FilterBar = forwardRef(({
     searchQuery,
     onSearchChange,
     selectedCategory,
     onCategoryChange,
     showMyEvents,
-    onToggleMyEvents
-}) => {
+    onToggleMyEvents,
+    onOpenFilter
+}, ref) => {
     const categories = ['All', 'Fitness', 'Music', 'Tech', 'Sports'];
 
     return (
@@ -17,12 +18,16 @@ export const FilterBar = ({
             <div className={styles.searchBox}>
                 <Search size={18} className={styles.searchIcon} />
                 <input
+                    ref={ref}
                     type="text"
                     placeholder="Search events..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className={styles.searchInput}
                 />
+                <button className={styles.filterTrigger} onClick={onOpenFilter}>
+                    <Filter size={18} />
+                </button>
             </div>
 
             <div className={styles.filters}>
@@ -47,4 +52,6 @@ export const FilterBar = ({
             </div>
         </div>
     );
-};
+});
+
+FilterBar.displayName = 'FilterBar';

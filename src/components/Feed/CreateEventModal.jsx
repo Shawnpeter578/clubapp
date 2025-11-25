@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, Type, AlignLeft, Tag } from 'lucide-react';
+import { X, Calendar, MapPin, Type, Tag } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import styles from './CreateEventModal.module.css';
@@ -9,6 +9,7 @@ export const CreateEventModal = ({ isOpen, onClose, onCreate }) => {
     const [formData, setFormData] = useState({
         title: '',
         desc: '',
+        location: '',
         time: '',
         dist: '',
         cat: 'General'
@@ -25,22 +26,33 @@ export const CreateEventModal = ({ isOpen, onClose, onCreate }) => {
         onClose();
     };
 
+    React.useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
-                    <motion.div
-                        className={styles.backdrop}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                    />
+                <motion.div
+                    className={styles.backdrop}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                >
                     <motion.div
                         className={styles.modal}
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 100 }}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className={styles.header}>
                             <h3>Create Event</h3>
@@ -55,6 +67,14 @@ export const CreateEventModal = ({ isOpen, onClose, onCreate }) => {
                                 placeholder="Event Title"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                required
+                            />
+
+                            <Input
+                                icon={MapPin}
+                                placeholder="Location Name"
+                                value={formData.location}
+                                onChange={e => setFormData({ ...formData, location: e.target.value })}
                                 required
                             />
 
@@ -103,7 +123,7 @@ export const CreateEventModal = ({ isOpen, onClose, onCreate }) => {
                             </Button>
                         </form>
                     </motion.div>
-                </>
+                </motion.div>
             )}
         </AnimatePresence>
     );
