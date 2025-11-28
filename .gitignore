@@ -26,3 +26,9 @@ dist-ssr
 # Capacitor
 android
 ios
+
+# bat files (chris's env)
+*.bat
+
+# trash file
+trash
